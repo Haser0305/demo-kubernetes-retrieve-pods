@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reader-account
+  namespace: test-postgres-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: test-postgres-operator
+  name: pod-reader
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "pods" ]
+    verbs: [ "get", "watch", "list" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: test-postgres-operator
+subjects:
+  - kind: ServiceAccount
+    name: pod-reader-account
+    namespace: test-postgres-operator
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retrieve-all-pods-job
+spec:
+  template:
+    spec:
+      serviceAccountName: pod-reader-account
+      containers:
+        - name: curl
+          image: curlimages/curl
+          command:
+            - "/bin/sh"
+            - "-c"
+          args:
+            - >
+              curl -k https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/api/v1/namespaces/test-postgres-operator/pods
+              -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+      restartPolicy: Never
+  backoffLimit: 1
