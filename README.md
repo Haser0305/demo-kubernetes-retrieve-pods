@@ -3,6 +3,8 @@
 The goal is to retrieve all pods in the same namespace, namely `test-namespace`. 
 For this, we are creating few kubernetes objects.
 
+---
+
 ## Service Account
 
 This service account named `pod-reader-account` is created in the `test-namespace` namespace.
@@ -69,6 +71,23 @@ spec:
       restartPolicy: Never
   backoffLimit: 1
 ```
+
+## Result
+The following is the heading for displaying information of another job in the same namespace.
+```log
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "819628"
+  },
+  "items": [
+    {
+      "metadata": {
+      ...
+```
+
+---
 
 This file provides an overview of how you are going to achieve 
 the retrieval of all pods in the same namespace through ServiceAccount, 
